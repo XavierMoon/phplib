@@ -254,3 +254,8 @@ win32/phpts.def
 win32/wsyslog.h
 win32/win32.dsp
 win32/php.dsw
+*.new
+ext/phar/phar.1
+ext/phar/phar.phar.1
+makeout.txt
+sapi/cgi/php-cgi.1

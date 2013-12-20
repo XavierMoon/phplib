@@ -4,15 +4,50 @@
 
 BLD_OS      := $(shell getos)
 BLD_ARCH    := $(shell getarch)
-LATEST	    := php-5.4.10
-OPTIONS		:= 	--disable-debug --disable-rpath --disable-cli --enable-bcmath --enable-calendar \
-			   	--enable-maintainer-zts --enable-embed=shared --enable-ftp \
-			   	--enable-inline-optimization --enable-sockets --enable-wddx --sysconfdir=/etc/appweb \
-			   	--with-pic --with-regex=system --with-pear --with-xmlrpc --with-zlib --with-curl
-WIN_OPTIONS	:= 	--disable-debug --without-gd --disable-bcmath --disable-calendar --disable-com-dotnet --disable-filter \
-			   	--disable-json --disable-ipv6 --disable-odbc --disable-tokenizer \
-			   	--disable-zlib --disable-ftp --enable-embed --enable-zts --without-dom --without-libxml \
-				--without-iconv --without-simplexml --without-xml
+OPTIONS		:= \
+	--prefix=/usr  \
+	--mandir=/usr/share/man  \
+	--infodir=/usr/share/info  \
+	--sysconfdir=/etc/appweb \
+	--disable-debug \
+	--disable-rpath \
+	--disable-cli \
+	--disable-ftp \
+	--enable-bcmath \
+	--enable-calendar \
+	--enable-maintainer-zts \
+	--enable-embed=shared \
+	--enable-inline-optimization \
+	--enable-sockets \
+	--enable-wddx \
+	--without-iconv \
+	--with-pic \
+	--with-regex=system \
+	--with-pear \
+	--without-zlib \
+	--without-curl
+
+WIN_OPTIONS	:= 	\
+	--disable-debug \
+	--without-gd \
+	--disable-bcmath \
+	--disable-calendar \
+	--disable-com-dotnet \
+	--disable-filter \
+	--disable-json \
+	--disable-ipv6 \
+	--disable-odbc \
+	--disable-tokenizer \
+	--disable-zlib \
+	--disable-ftp \
+	--enable-embed \
+	--enable-zts \
+	--without-dom \
+	--without-libxml \
+	--without-iconv \
+	--without-simplexml \
+	--without-xml
+
 # MORE_OPTIONS:=	--with-mysql=/usr/local/mysql-client
 export 		BLD_OS BLD_ARCH
 
