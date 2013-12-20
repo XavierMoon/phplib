@@ -1,0 +1,23 @@
+#
+#   Determine the O/S platform
+#
+
+FORCE_CYGWIN=0
+
+u=`uname`
+case $u in
+Darwin*)
+    echo MACOSX ;;
+Linux*)
+    echo LINUX ;;
+CYGWIN*)
+    if [ "$FORCE_CYGWIN" = 1 ] ; then
+        echo CYGWIN
+    else
+        echo WIN
+    fi ;;
+*)
+    echo UNKNOWN
+esac
+
+ 

@@ -1,0 +1,24 @@
+#
+#   Determine the CPU architecture
+#
+
+ARCH=`echo $PWD | sed 's/.*packages-.*-//;s/\/.*//'`
+if [ '${ARCH}' = '' ] ; then
+    machine=`uname -m`
+    case $machine in
+    i386|i686)
+        if [ "${PROCESSOR_ARCHITECTURE}" = AMD64 -o "${PROCESSOR_ARCHITEW6432}" = AMD64 ] ; then
+            ARCH=x64
+        elif [ "`uname`" = Darwin ] ; then
+            ARCH=x64
+        else ARCH=x86 
+        fi
+        ;;
+    ppc*|powerpc)
+        ARCH=ppc 
+        ;;
+    *)
+        echo UNKNOWN
+    esac
+fi
+echo $ARCH
