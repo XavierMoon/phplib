@@ -11,25 +11,36 @@ Me.load({
                     function cmd(command) {
                         sh('windows.bat ' + Config.CPU + ' ' + command)
                     }
-                    if (Config.CPU == 'x64') {
-                        config = 'VC-WIN64A'
-                        script = 'ms/do_win64a.bat'
-                    } else {
-                        config = 'VC-WIN32'
-                        script = 'ms/do_ms.bat'
-                    }
-                    cmd('perl Configure ' + config)
-                    cmd(script)
-                    cmd('nmake -f ms/ntdll.mak')
+                    cmd('/bin/find . -name "*.obj" -print | xargs rm -f')
+                    cmd('rm -fr Debug_TS Release_TS')
+                    cmd('cmd /c buildconf.bat')
+                    cmd('cscript /nologo configure.js --disable-debug --without-gd --disable-bcmath \
+                         --disable-calendar --disable-com-dotnet --disable-filter --disable-json \
+                         --disable-ipv6 --disable-odbc --disable-tokenizer --disable-zlib --disable-ftp \
+                         --enable-embed --enable-zts --without-dom --without-libxml --without-iconv \
+                         --without-simplexml --without-xml')
+                    cmd('nmake')
+
+                } else if (Config.OS == 'macosx') {
+                    sh('chmod +x Configure config; touch Makefile')
+                    MACOSX_DEPLOYMENT_TARGET=10.5 ; \
+                    if [ "$(BLD_ARCH)" = 'x64' ] ; then \
+                        GCC_ARCH="x86_64" ; \
+                    else \
+                        GCC_ARCH="i686" ; \
+                    fi ; \
+                    CC=/usr/bin/gcc; \
+                    CCFLAGS="-arch $${GCC_ARCH}" ; \
+                    CCFLAGS="$CFLAGS" ; \
+                    LDFLAGS="-Wl,-install_name,@rpath/libphp5.dylib -arch $${GCC_ARCH} -bind_at_load -lresolv" ; \
+                    export CC LDFLAGS CFLAGS CCFLAGS MACOSX_DEPLOYMENT_TARGET ; \
+                    cd latest ; ./configure --build=$${GCC_ARCH}-apple-darwin10.0.0 $(OPTIONS) $(MORE_OPTIONS); \
+                    cp Makefile Makefile.new ; \
+                    sed 's/EXTRA_LDFLAGS = -avoid-version -module/EXTRA_LDFLAGS = -avoid-version/' < Makefile.new > Makefile ; \
 
                 } else {
-                    sh('chmod +x Configure config; touch Makefile')
                     sh('make clean')
-                    if (Config.OS == 'macosx') {
-                        sh('./Configure darwin64-x86_64-cc shared ; make')
-                    } else {
-                        sh('./config shared ; make ; execstack -c *.so')
-                    }
+                    sh('make')
                 }
             `,
         },
