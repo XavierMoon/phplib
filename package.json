@@ -1,5 +1,8 @@
 {
-    "name": "php",
-    "description": "PHP Scripting Language",
+    "name": "php-src",
+    "description": "PHP Source Code",
     "version": "5.5.7",
+    "keywords": [
+        "me",
+    ],
 }

@@ -1,0 +1,49 @@
+/*
+    start.me - PHP MakeMe file
+ */
+
+Me.load({
+    targets: {
+        cache: {
+            action: `
+                trace('Build', 'PHP libraries')
+                if (Config.OS == 'windows') {
+                    function cmd(command) {
+                        sh('windows.bat ' + Config.CPU + ' ' + command)
+                    }
+                    if (Config.CPU == 'x64') {
+                        config = 'VC-WIN64A'
+                        script = 'ms/do_win64a.bat'
+                    } else {
+                        config = 'VC-WIN32'
+                        script = 'ms/do_ms.bat'
+                    }
+                    cmd('perl Configure ' + config)
+                    cmd(script)
+                    cmd('nmake -f ms/ntdll.mak')
+
+                } else {
+                    sh('chmod +x Configure config; touch Makefile')
+                    sh('make clean')
+                    if (Config.OS == 'macosx') {
+                        sh('./Configure darwin64-x86_64-cc shared ; make')
+                    } else {
+                        sh('./config shared ; make ; execstack -c *.so')
+                    }
+                }
+            `,
+        },
+
+        /*
+            Patch new releases - run manually
+         */ 
+        patch: {
+            action: `
+                sh('git checkout package.json windows.bat pak-1.patch start.me')
+                for each (f in Path('.').files('*.patch')) {
+                    sh('patch < ' + f)
+                }
+            `
+        },
+    },
+})
