@@ -1,0 +1,25 @@
+--- php-5.5.10/configure	2014-03-05 02:52:32.000000000 -0800
++++ php-src/configure	2014-03-31 20:44:03.000000000 -0700
+@@ -107678,6 +107678,8 @@
+     	output_verbose_link_cmd='echo'
+         archive_cmds="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring $_lt_dar_single_mod${_lt_dsymutil}"
+         module_cmds="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
++        # EMBEDTHIS revise
++        module_cmds="\$CC \$allow_undefined_flag -o \$lib -Wl,-rpath,@executable_path/ -Wl,-rpath,@loader_path/ -Wl,-install_name,@rpath/\${libname}.dylib -dynamiclib \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
+         archive_expsym_cmds="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring ${_lt_dar_single_mod}${_lt_dar_export_syms}${_lt_dsymutil}"
+         module_expsym_cmds="sed -e 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dar_export_syms}${_lt_dsymutil}"
+     else
+@@ -108335,9 +108337,13 @@
+   need_version=no
+   library_names_spec='${libname}${release}${versuffix}$shared_ext ${libname}${release}${major}$shared_ext ${libname}$shared_ext'
+   soname_spec='${libname}${release}${major}$shared_ext'
++  # EMBEDTHIS revise
++  soname_spec='${libname}$shared_ext'
+   shlibpath_overrides_runpath=yes
+   shlibpath_var=DYLD_LIBRARY_PATH
+   shrext_cmds='`test .$module = .yes && echo .so || echo .dylib`'
++  # EMBEDTHIS revise
++  shrext_cmds=.dylib
+ 
+   sys_lib_search_path_spec="$sys_lib_search_path_spec /usr/local/lib"
+   sys_lib_dlsearch_path_spec='/usr/local/lib /lib /usr/lib'

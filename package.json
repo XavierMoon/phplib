@@ -1,8 +1,9 @@
 {
     "name": "php-src",
     "description": "PHP Source Code",
-    "version": "5.5.7",
+    "version": "5.5.10",
     "keywords": [
         "me",
+        "php",
     ],
 }
