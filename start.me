@@ -22,6 +22,10 @@ Me.load({
                     cmd('nmake')
 
                 } else if (Config.OS == 'macosx') {
+//  make libphp5.la
+//  configure arguments
+//  may need -bind-at-load
+//  may need -lresolv
                     sh('chmod +x Configure config; touch Makefile')
                     MACOSX_DEPLOYMENT_TARGET=10.5 ; \
                     if [ "$(BLD_ARCH)" = 'x64' ] ; then \

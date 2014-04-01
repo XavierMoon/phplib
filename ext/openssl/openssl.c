@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2013 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -3022,6 +3022,15 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
 			assert(pkey->pkey.dh != NULL);
 
 			if (NULL == pkey->pkey.dh->p || NULL == pkey->pkey.dh->priv_key) {
+				return 0;
+			}
+			break;
+#endif
+#if OPENSSL_VERSION_NUMBER >= 0x0090800fL && !defined(OPENSSL_NO_EC) && defined(EVP_PKEY_EC)
+		case EVP_PKEY_EC:
+			assert(pkey->pkey.ec != NULL);
+
+			if ( NULL == EC_KEY_get0_private_key(pkey->pkey.ec)) {
 				return 0;
 			}
 			break;
