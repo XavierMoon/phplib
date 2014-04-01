@@ -12,12 +12,17 @@ Me.load({
                 trace('Build', 'PHP libraries')
                 if (Config.OS == 'windows') {
                     function cmd(command) {
-                        sh('windows.bat ' + Config.CPU + ' ' + command)
+                        sh('windows.bat ' + Config.CPU + ' ' + command, {noio: true})
                     }
-                    cmd('/bin/find . -name "*.obj" -print | xargs rm -f')
-                    cmd('rm -fr Debug_TS Release_TS')
-                    cmd('cmd /c buildconf.bat')
-                    cmd('cscript /nologo configure.js --disable-debug --without-gd --disable-bcmath --disable-calendar --disable-com-dotnet --disable-filter --disable-json --disable-ipv6 --disable-odbc --disable-tokenizer --disable-zlib --disable-ftp --enable-embed --enable-zts --without-dom --without-libxml --without-iconv --without-simplexml --without-xml')
+                    for each (f in Path('.').files('*.obj')) {
+                        f.remove()
+                    }
+                    Path('Debug_TS').removeAll()
+                    Path('Release_TS').removeAll()
+                    cmd('buildconf')
+                    Path('thisconfig.bat').write('cscript /nologo configure.js --disable-debug --without-gd --disable-bcmath --disable-calendar --disable-com-dotnet --disable-filter --disable-json --disable-ipv6 --disable-odbc --disable-tokenizer --disable-zlib --disable-ftp --enable-embed --enable-zts --without-dom --without-libxml --without-iconv --without-simplexml --without-xml --without-mysqlnd')
+                    cmd('thisconfig')
+                    cmd('nmake clean')
                     cmd('nmake')
 
                 } else {
