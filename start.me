@@ -18,7 +18,8 @@ Me.load({
                     cmd('nmake')
 
                 } else {
-                    sh('bash ./configure --disable-debug --disable-rpath --disable-cli --enable-bcmath --enable-calendar --enable-maintainer-zts --enable-embed=shared --enable-ftp --enable-inline-optimization --enable-sockets --enable-wddx --sysconfdir=/etc/appweb --with-pic --with-regex=system --with-pear --with-xmlrpc --with-zlib --with-curl')
+                    sh('chmod +x configure build/shtool')
+                    sh('./configure --disable-debug --disable-rpath --disable-cli --enable-bcmath --enable-calendar --enable-maintainer-zts --enable-embed=shared --enable-ftp --enable-inline-optimization --enable-sockets --enable-wddx --sysconfdir=/etc/appweb --with-pic --with-regex=system --with-pear --with-xmlrpc --with-zlib --with-curl')
                     sh('make clean')
                     sh('make libphp5.la')
                 }
