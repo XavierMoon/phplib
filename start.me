@@ -14,18 +14,11 @@ Me.load({
                     cmd('/bin/find . -name "*.obj" -print | xargs rm -f')
                     cmd('rm -fr Debug_TS Release_TS')
                     cmd('cmd /c buildconf.bat')
-                    cmd('cscript /nologo configure.js --disable-debug --without-gd --disable-bcmath \
-                         --disable-calendar --disable-com-dotnet --disable-filter --disable-json \
-                         --disable-ipv6 --disable-odbc --disable-tokenizer --disable-zlib --disable-ftp \
-                         --enable-embed --enable-zts --without-dom --without-libxml --without-iconv \
-                         --without-simplexml --without-xml')
+                    cmd('cscript /nologo configure.js --disable-debug --without-gd --disable-bcmath --disable-calendar --disable-com-dotnet --disable-filter --disable-json --disable-ipv6 --disable-odbc --disable-tokenizer --disable-zlib --disable-ftp --enable-embed --enable-zts --without-dom --without-libxml --without-iconv --without-simplexml --without-xml')
                     cmd('nmake')
 
                 } else {
-                    sh('./configure --disable-debug --disable-rpath --disable-cli --enable-bcmath --enable-calendar \
-                        --enable-maintainer-zts --enable-embed=shared --enable-ftp \
-                        --enable-inline-optimization --enable-sockets --enable-wddx --sysconfdir=/etc/appweb \
-                        --with-pic --with-regex=system --with-pear --with-xmlrpc --with-zlib --with-curl')
+                    sh('./configure --disable-debug --disable-rpath --disable-cli --enable-bcmath --enable-calendar --enable-maintainer-zts --enable-embed=shared --enable-ftp --enable-inline-optimization --enable-sockets --enable-wddx --sysconfdir=/etc/appweb --with-pic --with-regex=system --with-pear --with-xmlrpc --with-zlib --with-curl')
                     sh('make clean')
                     sh('make libphp5.la')
                 }
