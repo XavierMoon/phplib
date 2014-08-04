@@ -2,7 +2,7 @@
     start.me - PHP MakeMe file
 
     apt-get install build-essential curl libxml2-dev libdb-dev libz-dev libcurl4-gnutls-dev
-    apt-get install mercurial libmysqlclient15-dev
+    apt-get install libmysqlclient15-dev
  */
 
 Me.load({
@@ -26,7 +26,11 @@ Me.load({
                     cmd('nmake')
 
                 } else {
+                    trace('Info', 'Must have installed these packages')
+                    trace('Packages', 'apt-get install build-essential curl libxml2-dev libdb-dev libz-dev')
+                    trace('Packages', 'apt-get install libcurl4-gnutls-dev libmysqlclient15-dev')
                     sh('chmod +x configure build/shtool')
+
                     sh('./configure --disable-debug --disable-rpath --disable-cli --enable-bcmath --enable-calendar --enable-maintainer-zts --enable-embed=shared --enable-ftp --enable-inline-optimization --enable-sockets --enable-wddx --sysconfdir=/etc/appweb --with-pic --with-regex=system --with-pear --with-xmlrpc --with-zlib --with-curl')
                     sh('make clean')
                     sh('make libphp5.la')
