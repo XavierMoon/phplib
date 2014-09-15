@@ -747,7 +747,7 @@ globextend(path, pglob, limitp)
 	pathv[pglob->gl_offs + pglob->gl_pathc] = NULL;
 
 	if ((pglob->gl_flags & GLOB_LIMIT) &&
-		newsize + *limitp >= ARG_MAX) {
+		newsize + *limitp >= GLOB_LIMIT) {
 		errno = 0;
 		return(GLOB_NOSPACE);
 	}
