@@ -12,7 +12,7 @@ Me.load({
                 trace('Build', 'PHP libraries')
                 if (Config.OS == 'windows') {
                     function cmd(command) {
-                        sh('windows.bat ' + Config.CPU + ' ' + command, {noio: true})
+                        sh('windows.bat ' + Config.CPU + ' ' + command)
                     }
                     for each (f in Path('.').files('*.obj')) {
                         f.remove()
