@@ -158,6 +158,11 @@ static int	 match(Char *, Char *, Char *);
 static void	 qprintf(const char *, Char *);
 #endif
 
+/* EMBEDTHIS FIX */
+#ifndef ARG_MAX
+#define ARG_MAX 2000
+#endif
+
 PHPAPI int
 glob(pattern, flags, errfunc, pglob)
 	const char *pattern;
@@ -747,7 +752,7 @@ globextend(path, pglob, limitp)
 	pathv[pglob->gl_offs + pglob->gl_pathc] = NULL;
 
 	if ((pglob->gl_flags & GLOB_LIMIT) &&
-		newsize + *limitp >= GLOB_LIMIT) {
+		newsize + *limitp >= ARG_MAX) {
 		errno = 0;
 		return(GLOB_NOSPACE);
 	}
