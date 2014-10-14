@@ -12,7 +12,8 @@ Me.load({
                 trace('Build', 'PHP libraries')
                 if (Config.OS == 'windows') {
                     function cmd(command) {
-                        sh('windows.bat ' + Config.CPU + ' ' + command)
+                        let os = Config.CPU == 'x64' ? 'x86_amd64' : 'x86'
+                        sh('windows.bat ' + os + ' ' + command)
                     }
                     for each (f in Path('.').files('*.obj')) {
                         f.remove()
