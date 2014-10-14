@@ -3,7 +3,7 @@ REM
 REM   Set VS vars and run a command
 REM
 
-SET PATH=\perl64\bin;\perl\bin;%PATH%
+SET PATH=wintools\bin;\perl64\bin;\perl\bin;%PATH%
 
 set VS=
 if DEFINED VSINSTALLDIR GOTO DONE
