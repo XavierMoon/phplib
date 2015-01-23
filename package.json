@@ -1,9 +1,9 @@
 {
-    "name": "php",
+    "name": "phplib",
     "description": "PHP Source Code",
     "version": "5.5.20",
     "keywords": [
         "me",
-        "php",
-    ],
+        "php"
+    ]
 }
