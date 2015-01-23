@@ -493,12 +493,14 @@ apprentice_unmap(struct magic_map *map)
 	if (map == NULL)
 		return;
 	if (map->p != php_magic_database) {
-		int j;
-		for (j = 0; j < MAGIC_SETS; j++) {
-			if (map->magic[j])
-				efree(map->magic[j]);
-		}
-		if (map->p != NULL) {
+		if (map->p == NULL) {
+			int j;
+			for (j = 0; j < MAGIC_SETS; j++) {
+				if (map->magic[j]) {
+					efree(map->magic[j]);
+				}
+			}
+		} else {
 			efree(map->p);
 		}
 	}
@@ -1267,7 +1269,7 @@ file_signextend(struct magic_set *ms, struct magic *m, uint64_t v)
 		 * the sign extension must have happened.
 		 */
 		case FILE_BYTE:
-			v = (char) v;
+			v = (signed char) v;
 			break;
 		case FILE_SHORT:
 		case FILE_BESHORT:

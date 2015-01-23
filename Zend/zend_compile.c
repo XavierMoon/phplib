@@ -3336,8 +3336,11 @@ static char * zend_get_function_declaration(zend_function *fptr TSRMLS_DC) /* {{
 						*zv = *precv->op2.zv;
 						zval_copy_ctor(zv);
 						INIT_PZVAL(zv);
-						zval_update_constant_ex(&zv, (void*)1, fptr->common.scope TSRMLS_CC);
-						if (Z_TYPE_P(zv) == IS_BOOL) {
+						if ((Z_TYPE_P(zv) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT) {
+							REALLOC_BUF_IF_EXCEED(buf, offset, length, Z_STRLEN_P(zv));
+							memcpy(offset, Z_STRVAL_P(zv), Z_STRLEN_P(zv));
+							offset += Z_STRLEN_P(zv);
+						} else if (Z_TYPE_P(zv) == IS_BOOL) {
 							if (Z_LVAL_P(zv)) {
 								memcpy(offset, "true", 4);
 								offset += 4;
@@ -3359,7 +3362,7 @@ static char * zend_get_function_declaration(zend_function *fptr TSRMLS_DC) /* {{
 								*(offset++) = '.';
 							}
 							*(offset++) = '\'';
-						} else if (Z_TYPE_P(zv) == IS_ARRAY) {
+						} else if (Z_TYPE_P(zv) == IS_ARRAY || (Z_TYPE_P(zv) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT_ARRAY) {
 							memcpy(offset, "Array", 5);
 							offset += 5;
 						} else {
@@ -4113,7 +4116,7 @@ static void zend_traits_init_trait_structures(zend_class_entry *ce TSRMLS_DC) /*
 
 					/* make sure that the trait method is not from a class mentioned in
 					 exclude_from_classes, for consistency */
-					if (cur_precedence->trait_method->ce == cur_precedence->exclude_from_classes[i]) {
+					if (cur_precedence->trait_method->ce == cur_precedence->exclude_from_classes[j]) {
 						zend_error(E_COMPILE_ERROR,
 								   "Inconsistent insteadof definition. "
 								   "The method %s is to be used from %s, but %s is also on the exclude list",
@@ -6228,6 +6231,15 @@ void zend_do_foreach_begin(znode *foreach_token, znode *open_brackets_token, zno
 		/* save the location of FETCH_W instruction(s) */
 		open_brackets_token->u.op.opline_num = get_next_op_number(CG(active_op_array));
 		zend_do_end_variable_parse(array, BP_VAR_W, 0 TSRMLS_CC);
+
+		if (zend_is_function_or_method_call(array)) {
+			opline = get_next_op(CG(active_op_array) TSRMLS_CC);
+			opline->opcode = ZEND_SEPARATE;
+			SET_NODE(opline->op1, array);
+			SET_UNUSED(opline->op2);
+			opline->result_type = IS_VAR;
+			opline->result.var = opline->op1.var;
+		}
 	} else {
 		is_variable = 0;
 		open_brackets_token->u.op.opline_num = get_next_op_number(CG(active_op_array));

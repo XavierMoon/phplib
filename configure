@@ -836,7 +836,6 @@ CXXFLAGS
 CXX
 ICU_CONFIG
 OPENSSL_INCDIR_OPT
-PKG_CONFIG
 KRB5_CONFIG
 LTP_GENHTML
 LTP
@@ -849,6 +848,7 @@ php_fpm_sysconfdir
 php_fpm_group
 php_fpm_user
 php_fpm_systemd
+PKG_CONFIG
 SHLIB_DL_SUFFIX_NAME
 SHLIB_SUFFIX_NAME
 RE2C
@@ -3688,7 +3688,7 @@ ac_config_headers="$ac_config_headers main/php_config.h"
 
 PHP_MAJOR_VERSION=5
 PHP_MINOR_VERSION=5
-PHP_RELEASE_VERSION=10
+PHP_RELEASE_VERSION=20
 PHP_EXTRA_VERSION=""
 PHP_VERSION="$PHP_MAJOR_VERSION.$PHP_MINOR_VERSION.$PHP_RELEASE_VERSION$PHP_EXTRA_VERSION"
 PHP_VERSION_ID=`expr $PHP_MAJOR_VERSION \* 10000 + $PHP_MINOR_VERSION \* 100 + $PHP_RELEASE_VERSION`
@@ -12679,7 +12679,72 @@ ext_output=$PHP_FPM_SYSTEMD
 
 
   if test "$PHP_FPM_SYSTEMD" != "no" ; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sd_notify in -lsystemd-daemon" >&5
+    if test -z "$PKG_CONFIG"; then
+      # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    fi
+    unset SYSTEMD_LIBS
+    unset SYSTEMD_INCS
+
+    if test -x "$PKG_CONFIG" && $PKG_CONFIG --exists libsystemd; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libsystemd" >&5
+$as_echo_n "checking for libsystemd... " >&6; }
+      SYSTEMD_LIBS=`$PKG_CONFIG --libs libsystemd`
+      SYSTEMD_INCS=`$PKG_CONFIG --cflags-only-I libsystemd`
+      SYSTEMD_VERS=`$PKG_CONFIG --modversion libsystemd`
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: version $SYSTEMD_VERS" >&5
+$as_echo "version $SYSTEMD_VERS" >&6; }
+
+    elif test -x "$PKG_CONFIG" && $PKG_CONFIG --exists libsystemd-daemon; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libsystemd-daemon" >&5
+$as_echo_n "checking for libsystemd-daemon... " >&6; }
+      SYSTEMD_LIBS=`$PKG_CONFIG --libs libsystemd-daemon`
+      SYSTEMD_INCS=`$PKG_CONFIG --cflags-only-I libsystemd-daemon`
+      SYSTEMD_VERS=`$PKG_CONFIG --modversion libsystemd-daemon`
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: version $SYSTEMD_VERS" >&5
+$as_echo "version $SYSTEMD_VERS" >&6; }
+
+    else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sd_notify in -lsystemd-daemon" >&5
 $as_echo_n "checking for sd_notify in -lsystemd-daemon... " >&6; }
 if ${ac_cv_lib_systemd_daemon_sd_notify+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -12719,6 +12784,8 @@ if test "x$ac_cv_lib_systemd_daemon_sd_notify" = xyes; then :
   SYSTEMD_LIBS="-lsystemd-daemon"
 fi
 
+    fi
+
     for ac_header in systemd/sd-daemon.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "systemd/sd-daemon.h" "ac_cv_header_systemd_sd_daemon_h" "$ac_includes_default"
@@ -12741,14 +12808,115 @@ $as_echo "#define HAVE_SYSTEMD 1" >>confdefs.h
 
       PHP_FPM_SD_FILES="fpm/fpm_systemd.c"
 
+  for ac_i in $SYSTEMD_LIBS; do
+    case $ac_i in
+    -pthread)
+      if test "$ext_shared" = "yes"; then
+        ="$ -pthread"
+      else
 
-  case systemd-daemon in
+
+  unique=`echo $ac_i|$SED 's/[^a-zA-Z0-9]/_/g'`
+
+  cmd="echo $ac_n \"\$EXTRA_LDFLAGS$unique$ac_c\""
+  if test -n "$unique" && test "`eval $cmd`" = "" ; then
+    eval "EXTRA_LDFLAGS$unique=set"
+    EXTRA_LDFLAGS="$EXTRA_LDFLAGS $ac_i"
+  fi
+
+      fi
+    ;;
+    -l*)
+      ac_ii=`echo $ac_i|cut -c 3-`
+
+
+  case $ac_ii in
   c|c_r|pthread*) ;;
   *)
-      LIBS="-lsystemd-daemon $LIBS"
+      LIBS="$LIBS -l$ac_ii"
    ;;
   esac
 
+
+    ;;
+    -L*)
+      ac_ii=`echo $ac_i|cut -c 3-`
+
+  if test "$ac_ii" != "/usr/$PHP_LIBDIR" && test "$ac_ii" != "/usr/lib"; then
+
+  if test -z "$ac_ii" || echo "$ac_ii" | grep '^/' >/dev/null ; then
+    ai_p=$ac_ii
+  else
+
+    ep_dir=`echo $ac_ii|$SED 's%/*[^/][^/]*/*$%%'`
+
+    ep_realdir=`(cd "$ep_dir" && pwd)`
+    ai_p="$ep_realdir"/`basename "$ac_ii"`
+  fi
+
+
+
+
+
+  unique=`echo $ai_p|$SED 's/[^a-zA-Z0-9]/_/g'`
+
+  cmd="echo $ac_n \"\$LIBPATH$unique$ac_c\""
+  if test -n "$unique" && test "`eval $cmd`" = "" ; then
+    eval "LIBPATH$unique=set"
+
+    test -n "$ld_runpath_switch" && LDFLAGS="$LDFLAGS $ld_runpath_switch$ai_p"
+    LDFLAGS="$LDFLAGS -L$ai_p"
+    PHP_RPATHS="$PHP_RPATHS $ai_p"
+
+  fi
+
+
+
+  fi
+
+    ;;
+    esac
+  done
+
+
+  for ac_i in $SYSTEMD_INCS; do
+    case $ac_i in
+    -I*)
+      ac_ii=`echo $ac_i|cut -c 3-`
+
+  if test "$ac_ii" != "/usr/include"; then
+
+  if test -z "$ac_ii" || echo "$ac_ii" | grep '^/' >/dev/null ; then
+    ai_p=$ac_ii
+  else
+
+    ep_dir=`echo $ac_ii|$SED 's%/*[^/][^/]*/*$%%'`
+
+    ep_realdir=`(cd "$ep_dir" && pwd)`
+    ai_p="$ep_realdir"/`basename "$ac_ii"`
+  fi
+
+
+
+  unique=`echo $ai_p|$SED 's/[^a-zA-Z0-9]/_/g'`
+
+  cmd="echo $ac_n \"\$INCLUDEPATH$unique$ac_c\""
+  if test -n "$unique" && test "`eval $cmd`" = "" ; then
+    eval "INCLUDEPATH$unique=set"
+
+      if test ""; then
+        INCLUDES="-I$ai_p $INCLUDES"
+      else
+        INCLUDES="$INCLUDES -I$ai_p"
+      fi
+
+  fi
+
+  fi
+
+    ;;
+    esac
+  done
 
       php_fpm_systemd=notify
     fi
@@ -13461,8 +13629,8 @@ if test "$PHP_MILTER" != "no"; then
 
 
   src=$abs_srcdir/sapi/milter/Makefile.frag
-  ac_srcdir=$ext_srcdir
-  ac_builddir=$ext_builddir
+  ac_srcdir=$abs_srcdir/sapi/milter
+  ac_builddir=sapi/milter
   test -f "$src" && $SED -e "s#\$(srcdir)#$ac_srcdir#g" -e "s#\$(builddir)#$ac_builddir#g" $src  >> Makefile.fragments
 
 
@@ -13609,7 +13777,7 @@ EOF
 
 
 
-  BUILD_MILTER="\$(LIBTOOL) --mode=link \$(CC) -export-dynamic \$(CFLAGS_CLEAN) \$(EXTRA_CFLAGS) \$(EXTRA_LDFLAGS) \$(LDFLAGS) \$(PHP_RPATHS) \$(PHP_GLOBAL_OBJS) \$(PHP_BINARY_OBJS) \$(PHP_MILTER_OBJS) \$(EXTRA_LIBS) \$(ZEND_EXTRA_LIBS) -o \$(SAPI_MILTER_PATH)"
+  BUILD_MILTER="\$(LIBTOOL) --mode=link \$(CC) -export-dynamic \$(CFLAGS_CLEAN) \$(EXTRA_CFLAGS) \$(EXTRA_LDFLAGS_PROGRAM) \$(LDFLAGS) \$(PHP_RPATHS) \$(PHP_GLOBAL_OBJS) \$(PHP_BINARY_OBJS) \$(PHP_MILTER_OBJS) \$(EXTRA_LIBS) \$(ZEND_EXTRA_LIBS) -o \$(SAPI_MILTER_PATH)"
 
   PHP_VAR_SUBST="$PHP_VAR_SUBST SAPI_MILTER_PATH"
 
@@ -18047,7 +18215,7 @@ int main(int argc, char *argv[])
 {
   FILE *fp;
   long position;
-  char *filename = "/tmp/phpglibccheck";
+  char *filename = tmpnam(NULL);
 
   fp = fopen(filename, "w");
   if (fp == NULL) {
@@ -20158,7 +20326,8 @@ if test "$PHP_GCOV" = "yes"; then
     as_fn_error $? "ccache must be disabled when --enable-gcov option is used. You can disable ccache by setting environment variable CCACHE_DISABLE=1." "$LINENO" 5
   fi
 
-  ltp_version_list="1.5 1.6 1.7 1.9 1.10"
+    ltp_version_min="105"
+        ltp_version_exclude="1.8"
 
   # Extract the first word of "lcov", so it can be a program name with args.
 set dummy lcov; ac_word=$2
@@ -20249,24 +20418,33 @@ if ${php_cv_ltp_version+:} false; then :
 else
 
       php_cv_ltp_version=invalid
-      ltp_version=`$LTP -v 2>/dev/null | $SED -e 's/^.* //'`
-      for ltp_check_version in $ltp_version_list; do
-        if test "$ltp_version" = "$ltp_check_version"; then
-          php_cv_ltp_version="$ltp_check_version (ok)"
+      ltp_version_vars=`$LTP -v 2>/dev/null | $SED -e 's/^.* //' -e 's/\./ /g' | tr -d a-z`
+      if test -n "$ltp_version_vars"; then
+        set $ltp_version_vars
+        ltp_version="${1}.${2}"
+        ltp_version_num="`expr ${1} \* 100 + ${2}`"
+        if test $ltp_version_num -ge $ltp_version_min; then
+          php_cv_ltp_version="$ltp_version (ok)"
+          for ltp_check_version in $ltp_version_exclude; do
+            if test "$ltp_version" = "$ltp_check_version"; then
+              php_cv_ltp_version=invalid
+              break
+            fi
+          done
         fi
-      done
+      fi
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $php_cv_ltp_version" >&5
 $as_echo "$php_cv_ltp_version" >&6; }
   else
-    ltp_msg="To enable code coverage reporting you must have one of the following LTP versions installed: $ltp_version_list"
+    ltp_msg="To enable code coverage reporting you must have LTP installed"
     as_fn_error $? "$ltp_msg" "$LINENO" 5
   fi
 
   case $php_cv_ltp_version in
     ""|invalid)
-      ltp_msg="You must have one of the following versions of LTP: $ltp_version_list (found: $ltp_version)."
+      ltp_msg="This LTP version is not supported (found: $ltp_version, min: $ltp_version_min, excluded: $ltp_version_exclude)."
       as_fn_error $? "$ltp_msg" "$LINENO" 5
       LTP="exit 0;"
       ;;
@@ -49023,7 +49201,6 @@ fi
 fi
 
 
-
 php_with_interbase=no
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for InterBase support" >&5
@@ -67093,7 +67270,6 @@ but you've either not enabled pdo, or have disabled it.
 
 
 fi
-
 
 
 php_with_pdo_firebird=no
@@ -101971,6 +102147,57 @@ $as_echo "no" >&6; }
 
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether whether compiler supports Decimal32/64/128 types" >&5
+$as_echo_n "checking whether whether compiler supports Decimal32/64/128 types... " >&6; }
+if ${ac_cv_decimal_fp_supported+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+if test "$cross_compiling" = yes; then :
+
+  ac_cv_decimal_fp_supported=no
+
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <string.h>
+
+int main(int argc, char **argv) {
+	typedef float dec32 __attribute__((mode(SD)));
+	dec32 k = 99.49f;
+	double d2 = (double)k;
+	const char *check_str = "99.49";
+	char print_str[32];
+
+	snprintf(print_str, 32, "%f", d2);
+	return memcmp(print_str, check_str, 5);
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+  ac_cv_decimal_fp_supported=yes
+
+else
+
+  ac_cv_decimal_fp_supported=no
+
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_decimal_fp_supported" >&5
+$as_echo "$ac_cv_decimal_fp_supported" >&6; }
+if test "$ac_cv_decimal_fp_supported" = "yes"; then
+
+$as_echo "#define HAVE_DECIMAL_FP_SUPPORT 1" >>confdefs.h
+
+fi
+
 
 if test "$PHP_RECODE" != "no"; then
   test "$PHP_IMAP"  != "no" && recode_conflict="$recode_conflict imap"
@@ -103200,7 +103427,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 103203 "configure"
+#line 103430 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -105112,7 +105339,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 105115 "configure"' > conftest.$ac_ext
+  echo '#line 105342 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -105147,7 +105374,7 @@ ia64-*-hpux*)
   rm -rf conftest*
   ;;
 
-x86_64-*kfreebsd*-gnu|x86_64-*linux*|ppc*-*linux*|powerpc*-*linux*| \
+x86_64-*kfreebsd*-gnu|x86_64-*linux*|powerpc*-*linux*| \
 s390*-*linux*|sparc*-*linux*)
   # Find out which ABI we are using.
   echo 'int i;' > conftest.$ac_ext
@@ -105165,7 +105392,10 @@ s390*-*linux*|sparc*-*linux*)
         x86_64-*linux*)
           LD="${LD-ld} -m elf_i386"
           ;;
-        ppc64-*linux*|powerpc64-*linux*)
+        powerpc64le-*linux*)
+          LD="${LD-ld} -m elf32lppclinux"
+          ;;
+        powerpc64-*linux*)
           LD="${LD-ld} -m elf32ppclinux"
           ;;
         s390x-*linux*)
@@ -105184,7 +105414,10 @@ s390*-*linux*|sparc*-*linux*)
         x86_64-*linux*)
           LD="${LD-ld} -m elf_x86_64"
           ;;
-        ppc*-*linux*|powerpc*-*linux*)
+        powerpcle-*linux*)
+          LD="${LD-ld} -m elf64lppc"
+          ;;
+        powerpc-*linux*)
           LD="${LD-ld} -m elf64ppc"
           ;;
         s390*-*linux*)
@@ -106504,7 +106737,7 @@ else
       LDFLAGS="$LDFLAGS -Wl,-exported_symbols_list,conftest.sym"
 
 cat > conftest.$ac_ext <<EOF
-#line 106507 "configure"
+#line 106740 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -106662,11 +106895,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:106665: $lt_compile\"" >&5)
+   (eval echo "\"configure:106898: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "configure:106669: \$? = $ac_status" >&5
+   echo "configure:106902: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -106960,11 +107193,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:106963: $lt_compile\"" >&5)
+   (eval echo "\"configure:107196: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "configure:106967: \$? = $ac_status" >&5
+   echo "configure:107200: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -107064,11 +107297,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:107067: $lt_compile\"" >&5)
+   (eval echo "\"configure:107300: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "configure:107071: \$? = $ac_status" >&5
+   echo "configure:107304: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -107528,7 +107761,7 @@ _LT_EOF
        # Determine the default libpath from the value encoded in an empty executable.
 
 cat > conftest.$ac_ext <<EOF
-#line 107531 "configure"
+#line 107764 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -107570,7 +107803,7 @@ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
 	 # Determine the default libpath from the value encoded in an empty executable.
 
 cat > conftest.$ac_ext <<EOF
-#line 107573 "configure"
+#line 107806 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -107703,10 +107936,6 @@ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
       archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linker_flags'
       hardcode_libdir_flag_spec='-L$libdir'
       hardcode_shlibpath_var=no
-      ;;
-
-    freebsd1*)
-      ld_shlibs=no
       ;;
 
     # FreeBSD 2.2.[012] allows us to include c++rt0.o to get C++ constructor
@@ -108356,10 +108585,6 @@ dgux*)
   library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname$shared_ext'
   soname_spec='${libname}${release}${shared_ext}$major'
   shlibpath_var=LD_LIBRARY_PATH
-  ;;
-
-freebsd1*)
-  dynamic_linker=no
   ;;
 
 freebsd* | dragonfly*)
@@ -109101,7 +109326,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 109098 "configure"
+#line 109323 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -109201,7 +109426,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 109198 "configure"
+#line 109423 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -110266,7 +110491,7 @@ case $host_os in
       # Determine the default libpath from the value encoded in an empty executable.
 
 cat > conftest.$ac_ext <<EOF
-#line 110263 "configure"
+#line 110488 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -110309,7 +110534,7 @@ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
 	# Determine the default libpath from the value encoded in an empty executable.
 
 cat > conftest.$ac_ext <<EOF
-#line 110306 "configure"
+#line 110531 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -111561,11 +111786,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:111558: $lt_compile\"" >&5)
+   (eval echo "\"configure:111783: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "configure:111562: \$? = $ac_status" >&5
+   echo "configure:111787: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -111665,11 +111890,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:111662: $lt_compile\"" >&5)
+   (eval echo "\"configure:111887: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "configure:111666: \$? = $ac_status" >&5
+   echo "configure:111891: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -111993,10 +112218,6 @@ dgux*)
   library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname$shared_ext'
   soname_spec='${libname}${release}${shared_ext}$major'
   shlibpath_var=LD_LIBRARY_PATH
-  ;;
-
-freebsd1*)
-  dynamic_linker=no
   ;;
 
 freebsd* | dragonfly*)

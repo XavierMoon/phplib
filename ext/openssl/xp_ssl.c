@@ -339,9 +339,14 @@ static inline int php_openssl_setup_crypto(php_stream *stream,
 			break;
 #endif
 		case STREAM_CRYPTO_METHOD_SSLv3_CLIENT:
+#ifdef OPENSSL_NO_SSL3
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "SSLv3 support is not compiled into the OpenSSL library PHP is linked against");
+			return -1;
+#else
 			sslsock->is_client = 1;
 			method = SSLv3_client_method();
 			break;
+#endif
 		case STREAM_CRYPTO_METHOD_TLS_CLIENT:
 			sslsock->is_client = 1;
 			method = TLSv1_client_method();
@@ -351,9 +356,14 @@ static inline int php_openssl_setup_crypto(php_stream *stream,
 			method = SSLv23_server_method();
 			break;
 		case STREAM_CRYPTO_METHOD_SSLv3_SERVER:
+#ifdef OPENSSL_NO_SSL3
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "SSLv3 support is not compiled into the OpenSSL library PHP is linked against");
+			return -1;
+#else
 			sslsock->is_client = 0;
 			method = SSLv3_server_method();
 			break;
+#endif
 		case STREAM_CRYPTO_METHOD_SSLv2_SERVER:
 #ifdef OPENSSL_NO_SSL2
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "SSLv2 support is not compiled into the OpenSSL library PHP is linked against");
@@ -825,6 +835,21 @@ static int php_openssl_sockop_cast(php_stream *stream, int castas, void **ret TS
 
 		case PHP_STREAM_AS_FD_FOR_SELECT:
 			if (ret) {
+				/* OpenSSL has an internal buffer which select() cannot see. If we don't
+				 * fetch it into the stream's buffer, no activity will be reported on the
+				 * stream even though there is data waiting to be read - but we only fetch
+				 * the lower of bytes OpenSSL has ready to give us or chunk_size since we
+				 * weren't asked for any data at this stage. This is only likely to cause
+				 * issues with non-blocking streams, but it's harmless to always do it. */
+				size_t pending;
+				if (stream->writepos == stream->readpos
+					&& sslsock->ssl_active
+					&& (pending = (size_t)SSL_pending(sslsock->ssl_handle)) > 0) {
+						php_stream_fill_read_buffer(stream, pending < stream->chunk_size
+							? pending
+							: stream->chunk_size);
+				}
+
 				*(php_socket_t *)ret = sslsock->s.socket;
 			}
 			return SUCCESS;

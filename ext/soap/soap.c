@@ -225,6 +225,7 @@ PHP_METHOD(SoapClient, __getFunctions);
 PHP_METHOD(SoapClient, __getTypes);
 PHP_METHOD(SoapClient, __doRequest);
 PHP_METHOD(SoapClient, __setCookie);
+PHP_METHOD(SoapClient, __getCookies);
 PHP_METHOD(SoapClient, __setLocation);
 PHP_METHOD(SoapClient, __setSoapHeaders);
 
@@ -368,6 +369,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_soapclient___setcookie, 0, 0, 1)
 	ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_soapclient___getcookies, 0)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_soapclient___setsoapheaders, 0, 0, 1)
 	ZEND_ARG_INFO(0, soapheaders)
 ZEND_END_ARG_INFO()
@@ -422,6 +426,7 @@ static const zend_function_entry soap_client_functions[] = {
 	PHP_ME(SoapClient, __getTypes, 					arginfo_soapclient___gettypes, 0)
 	PHP_ME(SoapClient, __doRequest, 				arginfo_soapclient___dorequest, 0)
 	PHP_ME(SoapClient, __setCookie, 				arginfo_soapclient___setcookie, 0)
+	PHP_ME(SoapClient, __getCookies, 				arginfo_soapclient___getcookies, 0)
 	PHP_ME(SoapClient, __setLocation, 				arginfo_soapclient___setlocation, 0)
 	PHP_ME(SoapClient, __setSoapHeaders, 			arginfo_soapclient___setsoapheaders, 0)
 	PHP_FE_END
@@ -3153,6 +3158,24 @@ PHP_METHOD(SoapClient, __setCookie)
 }
 /* }}} */
 
+/* {{{ proto array SoapClient::__getCookies ( void )
+   Returns list of cookies */
+PHP_METHOD(SoapClient, __getCookies)
+{
+	zval **cookies, *tmp;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	array_init(return_value);
+
+	if (zend_hash_find(Z_OBJPROP_P(this_ptr), "_cookies", sizeof("_cookies"), (void **)&cookies) != FAILURE) {
+		zend_hash_copy(Z_ARRVAL_P(return_value), Z_ARRVAL_P(*cookies), (copy_ctor_func_t) zval_add_ref, (void *)&tmp, sizeof(zval*));
+	}
+}
+/* }}} */
+
 /* {{{ proto void SoapClient::__setSoapHeaders(array SoapHeaders)
    Sets SOAP headers for subsequent calls (replaces any previous
    values).
@@ -4723,6 +4746,7 @@ static void type_to_string(sdlTypePtr type, smart_str *buf, int level)
 				    zend_hash_find(type->attributes, SOAP_1_1_ENC_NAMESPACE":arrayType",
 				      sizeof(SOAP_1_1_ENC_NAMESPACE":arrayType"),
 				      (void **)&attr) == SUCCESS &&
+				      (*attr)->extraAttributes &&
 				      zend_hash_find((*attr)->extraAttributes, WSDL_NAMESPACE":arrayType", sizeof(WSDL_NAMESPACE":arrayType"), (void **)&ext) == SUCCESS) {
 					char *end = strchr((*ext)->val, '[');
 					int len;
@@ -4747,6 +4771,7 @@ static void type_to_string(sdlTypePtr type, smart_str *buf, int level)
 					    zend_hash_find(type->attributes, SOAP_1_2_ENC_NAMESPACE":itemType",
 					      sizeof(SOAP_1_2_ENC_NAMESPACE":itemType"),
 					      (void **)&attr) == SUCCESS &&
+					      (*attr)->extraAttributes &&
 					      zend_hash_find((*attr)->extraAttributes, WSDL_NAMESPACE":itemType", sizeof(WSDL_NAMESPACE":arrayType"), (void **)&ext) == SUCCESS) {
 						smart_str_appends(buf, (*ext)->val);
 						smart_str_appendc(buf, ' ');
@@ -4766,6 +4791,7 @@ static void type_to_string(sdlTypePtr type, smart_str *buf, int level)
 					    zend_hash_find(type->attributes, SOAP_1_2_ENC_NAMESPACE":arraySize",
 					      sizeof(SOAP_1_2_ENC_NAMESPACE":arraySize"),
 					      (void **)&attr) == SUCCESS &&
+					      (*attr)->extraAttributes &&
 					      zend_hash_find((*attr)->extraAttributes, WSDL_NAMESPACE":itemType", sizeof(WSDL_NAMESPACE":arraySize"), (void **)&ext) == SUCCESS) {
 						smart_str_appendc(buf, '[');
 						smart_str_appends(buf, (*ext)->val);

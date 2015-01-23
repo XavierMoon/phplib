@@ -27,7 +27,8 @@
 #endif
 
 #define ACCELERATOR_PRODUCT_NAME	"Zend OPcache"
-#define ACCELERATOR_VERSION "7.0.3"
+#define PHP_ZENDOPCACHE_VERSION "7.0.4-dev"
+#define ACCELERATOR_VERSION PHP_ZENDOPCACHE_VERSION
 /* 2 - added Profiler support, on 20010712 */
 /* 3 - added support for Optimizer's encoded-only-files mode */
 /* 4 - works with the new Optimizer, that supports the file format with licenses */
@@ -296,7 +297,6 @@ typedef struct _zend_accel_shared_globals {
     unsigned long   restart_in;
 #endif
 	zend_bool       restart_in_progress;
-    time_t          revalidate_at;
 #if ZEND_EXTENSION_API_NO > PHP_5_3_X_API_NO
 	/* Interned Strings Support */
 	char           *interned_strings_start;
